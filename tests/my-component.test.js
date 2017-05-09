@@ -151,7 +151,7 @@ test('-------- Bowling: test points in a specific frame with only a roll in that
 });
 
 // evitar que entre dos tiradas supere más de 10 bolos en el mismo frame
-test('-------- Bowling: test cannot add more 10 points in a frame', (assert) => {
+test('-------- Bowling: testing cannot add more than 10 points in a frame', (assert) => {
     const message = 'Points must be 6';
     const expected = 6;
 
