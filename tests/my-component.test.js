@@ -24,44 +24,70 @@ const Bowling = function () {
         }
     };
 
-    const score = function (frame = 1) {
-        const index = (frame - 1) * 2;
+    const scoreForRoll = function (roll) {
+        return rolls[roll] ? rolls[roll] : 0;
+    };
 
-        let frameScore = (rolls[index] ? rolls[index] : 0) + (rolls[index + 1] ? rolls[index + 1] : 0);
+    const firstRollInFrame = function (frame) {
+        return (frame - 1) * 2;
+    };
 
-        if (10 === rolls[index]) {  // strike
-            frameScore += (rolls[index + 2] ? rolls[index + 2] : 0) + (rolls[index + 3] ? rolls[index + 3] : 0);
-        } else {
-            if (10 === frameScore) {  // spare
-                frameScore += rolls[index + 2] ? rolls[index + 2] : 0;
-            }
+    const isStrike = function (frame) {
+        const index = firstRollInFrame(frame);
+        return 10 === rolls[index];
+    };
+
+    const isSpare = function (frame) {
+        const index = firstRollInFrame(frame);
+        return !isStrike(frame) && 10 === rolls[index] + rolls[index + 1];
+    };
+
+    const frameScore = function (frame = 1) {
+        const index = firstRollInFrame(frame);
+
+        let result = scoreForRoll(index) + scoreForRoll(index + 1);
+
+        if (isStrike(frame)) {
+            result += scoreForRoll(index + 2) + scoreForRoll(index + 3);
         }
 
-        return frameScore;
+        if (isSpare(frame)) {
+            result += scoreForRoll(index + 2);
+        }
+
+        return result;
+    };
+
+    const validateFrameScore = function (frame = 1, points = 0) {
+        return frameScore(frame) === points;
     };
 
     const totalScore = function () {
         const MAX_FRAMES = 10;
-        let points = 0;
-        for (let ii = 1; ii <= MAX_FRAMES; ii++) {
-            points += score(ii);
+        let currentPoints = 0;
+        for (let frame = 1; frame <= MAX_FRAMES; frame++) {
+            currentPoints += frameScore(frame);
         }
 
-        return points;
+        return currentPoints;
     };
 
-    return {roll, score, totalScore};
+    const validateScore = function (points = 0) {
+        return totalScore() === points;
+    };
+
+    return {roll, validateFrameScore, validateScore};
 };
 
 test('-------- Bowling: test if we can add 1 point', (assert) => {
     const message = 'The score must be 1';
-    const expected = 1;
+    const expected = true;
 
     const bowling = Bowling();
 
     bowling.roll(1);
 
-    const actual = bowling.score();
+    const actual = bowling.validateFrameScore(1, 1);
 
     assert.equal(actual, expected, message);
 
@@ -70,14 +96,14 @@ test('-------- Bowling: test if we can add 1 point', (assert) => {
 
 test('-------- Bowling: test if we can add 5 points in two rolls', (assert) => {
     const message = 'The score must be 5';
-    const expected = 5;
+    const expected = true;
 
     const bowling = Bowling();
 
     bowling.roll(1);
     bowling.roll(4);
 
-    const actual = bowling.score();
+    const actual = bowling.validateFrameScore(1, 5);
 
     assert.equal(actual, expected, message);
 
@@ -86,13 +112,13 @@ test('-------- Bowling: test if we can add 5 points in two rolls', (assert) => {
 
 test('-------- Bowling: test if no points were added when we pass negative values', (assert) => {
     const message = 'The score must be 0 when you pass negative values';
-    const expected = 0;
+    const expected = true;
 
     const bowling = Bowling();
 
     bowling.roll(-1);
 
-    const actual = bowling.score();
+    const actual = bowling.validateFrameScore(1, 0);
 
     assert.equal(actual, expected, message);
 
@@ -101,13 +127,13 @@ test('-------- Bowling: test if no points were added when we pass negative value
 
 test('-------- Bowling: test if no points were added when we pass 10+ values', (assert) => {
     const message = 'The score must be 0 when you pass 10+ values';
-    const expected = 0;
+    const expected = true;
 
     const bowling = Bowling();
 
     bowling.roll(11);
 
-    const actual = bowling.score();
+    const actual = bowling.validateFrameScore(1, 0);
 
     assert.equal(actual, expected, message);
 
@@ -117,7 +143,7 @@ test('-------- Bowling: test if no points were added when we pass 10+ values', (
 // chequear la puntuación en un frame concreto
 test('-------- Bowling: test points in a specific frame', (assert) => {
     const message = 'Points must be 5';
-    const expected = 5;
+    const expected = true;
 
     const bowling = Bowling();
 
@@ -125,7 +151,7 @@ test('-------- Bowling: test points in a specific frame', (assert) => {
     bowling.roll(4);
     bowling.roll(4);
 
-    const actual = bowling.score(1);
+    const actual = bowling.validateFrameScore(1, 5);
 
     assert.equal(actual, expected, message);
 
@@ -135,7 +161,7 @@ test('-------- Bowling: test points in a specific frame', (assert) => {
 // chequear la puntuación en un frame concreto
 test('-------- Bowling: test points in a specific frame with only a roll in that frame', (assert) => {
     const message = 'Points must be 7';
-    const expected = 7;
+    const expected = true;
 
     const bowling = Bowling();
 
@@ -143,7 +169,7 @@ test('-------- Bowling: test points in a specific frame with only a roll in that
     bowling.roll(4);
     bowling.roll(7);
 
-    const actual = bowling.score(2);
+    const actual = bowling.validateFrameScore(2, 7);
 
     assert.equal(actual, expected, message);
 
@@ -153,7 +179,7 @@ test('-------- Bowling: test points in a specific frame with only a roll in that
 // evitar que entre dos tiradas supere más de 10 bolos en el mismo frame
 test('-------- Bowling: testing cannot add more than 10 points in a frame', (assert) => {
     const message = 'Points must be 6';
-    const expected = 6;
+    const expected = true;
 
     const bowling = Bowling();
 
@@ -161,17 +187,16 @@ test('-------- Bowling: testing cannot add more than 10 points in a frame', (ass
     bowling.roll(9);
     bowling.roll(4);
 
-    const actual = bowling.score(1);
+    const actual = bowling.validateFrameScore(1, 6);
 
     assert.equal(actual, expected, message);
 
     assert.end();
 });
 
-// spare
 test('-------- Bowling: testing spares', (assert) => {
     const message = 'Points must be 15';
-    const expected = 15;
+    const expected = true;
 
     const bowling = Bowling();
 
@@ -181,17 +206,16 @@ test('-------- Bowling: testing spares', (assert) => {
     bowling.roll(10);
     bowling.roll(5);
 
-    const actual = bowling.score(2);
+    const actual = bowling.validateFrameScore(2, 15);
 
     assert.equal(actual, expected, message);
 
     assert.end();
 });
 
-// strikes
 test('-------- Bowling: testing strikes', (assert) => {
     const message = 'Points must be 18';
-    const expected = 18;
+    const expected = true;
 
     const bowling = Bowling();
 
@@ -201,7 +225,7 @@ test('-------- Bowling: testing strikes', (assert) => {
     bowling.roll(5);
     bowling.roll(3);
 
-    const actual = bowling.score(2);
+    const actual = bowling.validateFrameScore(2, 18);
 
     assert.equal(actual, expected, message);
 
@@ -210,7 +234,7 @@ test('-------- Bowling: testing strikes', (assert) => {
 
 test('-------- Bowling: testing total score', (assert) => {
     const message = 'Points must be 19';
-    const expected = 19;
+    const expected = true;
 
     const bowling = Bowling();
 
@@ -219,7 +243,7 @@ test('-------- Bowling: testing total score', (assert) => {
     bowling.roll(10);
     bowling.roll(2);
 
-    const actual = bowling.totalScore();
+    const actual = bowling.validateScore(19);
 
     assert.equal(actual, expected, message);
 
