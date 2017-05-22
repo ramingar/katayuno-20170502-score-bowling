@@ -10,15 +10,15 @@ const Bowling = function () {
     let rolls = [];
 
     const roll = function (pins) {
-        const numberOfRoll = rolls.length;
-        const currentFrame = getFrame(numberOfRoll);
+        const rollNumber = rolls.length;
+        const currentFrame = getFrame(rollNumber);
 
         if (pins > 10 || pins < 0) {
             return false;
         }
 
-        if ((firstRollInFrame(currentFrame) + 1) === numberOfRoll) {
-            if (rolls[numberOfRoll - 1] + pins > 10) {  // in a frame, the two rolls can't score more than 10 pins
+        if ((firstRollInFrame(currentFrame) + 1) === rollNumber) {
+            if (rolls[rollNumber - 1] + pins > 10) {  // in a frame, the two rolls can't score more than 10 pins
                 return false;
             }
         }
