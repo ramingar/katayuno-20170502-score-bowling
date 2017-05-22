@@ -1,27 +1,37 @@
 import test from 'tape';
 
 // Component to test
+/*
+ 0    1    2   3   4   5     6 ... <- frame
+ -  0 1  2 3 4 5 6 7 8 9 10 11 ... <- rolls
+ -  1 4 10 0 2 5 3 3 4 1  3  4 ... <- pins
+ */
 const Bowling = function () {
     let rolls = [];
 
     const roll = function (pins) {
+        const numberOfRoll = rolls.length;
+        const currentFrame = getFrame(numberOfRoll);
+
         if (pins > 10 || pins < 0) {
             return false;
         }
 
-        const length = rolls.length;
-
-        if (0 !== length % 2) {  // second roll in a frame
-            if (rolls[length - 1] + pins > 10) {
+        if ((firstRollInFrame(currentFrame) + 1) === numberOfRoll) {
+            if (rolls[numberOfRoll - 1] + pins > 10) {  // in a frame, the two rolls can't score more than 10 pins
                 return false;
             }
         }
 
         rolls.push(pins);
 
-        if ((0 === length % 2) && (10 === pins)) {  // strike
-            rolls.push(0);  // two rolls in the frame in spite of doing a strike in the frame's first roll
+        if (isStrike(currentFrame)) {
+            rolls.push(0);  // we need two rolls in each frame in spite of doing a strike in the frame's first roll
         }
+    };
+
+    const getFrame = function (roll) {
+        return (parseInt(roll / 2)) + 1;
     };
 
     const scoreForRoll = function (roll) {
