@@ -1,68 +1,117 @@
 import test from 'tape';
 
-// Component to test
 /*
  0    1    2   3   4   5     6 ... <- frame
  -  0 1  2 3 4 5 6 7 8 9 10 11 ... <- rolls
  -  1 4 10 0 2 5 3 3 4 1  3  4 ... <- pins
  */
-const Bowling = function () {
-    let rolls = [];
+
+const Roll = function (pinsKnocked) {
+    const MAX_PINS = 10;
+
+    const isAllowed = function (pins) {
+        return pins <= MAX_PINS && pins >= 0;
+    };
+
+    const pins = isAllowed(pinsKnocked) ? pinsKnocked : null;
+    const allPinsInOneShot = pins === MAX_PINS;
+
+    return {pins, allPinsInOneShot};
+};
+
+const Frame = function () {
+    let rolls = {first: Roll(), second: Roll()};
 
     const roll = function (pins) {
-        const rollNumber = rolls.length;
-        const currentFrame = getFrame(rollNumber);
 
-        if (pins > 10 || pins < 0) {
+        if (willFrameExceedMaxPins(pins)) {
             return false;
         }
 
-        if ((firstRollInFrame(currentFrame) + 1) === rollNumber) {
-            if (rolls[rollNumber - 1] + pins > 10) {  // in a frame, the two rolls can't score more than 10 pins
-                return false;
-            }
-        }
+        setPins(pins);
 
-        rolls.push(pins);
-
-        if (isStrike(currentFrame)) {
-            rolls.push(0);  // we need two rolls in each frame in spite of doing a strike in the frame's first roll
+        if (isStrike()) {
+            setPins(0);  // we need two rolls in each frame in spite of doing a strike in the frame's first roll
         }
     };
 
-    const getFrame = function (roll) {
-        return (parseInt(roll / 2)) + 1;
-    };
-
-    const scoreForRoll = function (roll) {
-        return rolls[roll] ? rolls[roll] : 0;
-    };
-
-    const firstRollInFrame = function (frame) {
-        return (frame - 1) * 2;
-    };
-
-    const isStrike = function (frame) {
-        const index = firstRollInFrame(frame);
-        return 10 === rolls[index];
-    };
-
-    const isSpare = function (frame) {
-        const index = firstRollInFrame(frame);
-        return !isStrike(frame) && 10 === rolls[index] + rolls[index + 1];
-    };
-
-    const frameScore = function (frame = 1) {
-        const index = firstRollInFrame(frame);
-
-        let result = scoreForRoll(index) + scoreForRoll(index + 1);
-
-        if (isStrike(frame)) {
-            result += scoreForRoll(index + 2) + scoreForRoll(index + 3);
+    const setPins = function (pins) {
+        if (isFull()) {
+            return false;
         }
 
-        if (isSpare(frame)) {
-            result += scoreForRoll(index + 2);
+        if (rolls.first.pins === null) {
+            rolls.first = Roll(pins);
+        } else {
+            rolls.second = Roll(pins);
+        }
+    };
+
+    const isStrike = function () {
+        return rolls.first.allPinsInOneShot;
+    };
+
+    const isSpare = function () {
+        const sumRolls = Roll(getScore());
+        return !isStrike() && sumRolls.allPinsInOneShot;
+    };
+
+    // in a frame, the two rolls can't score more than 10 pins
+    const willFrameExceedMaxPins = function (pins) {
+        const composeRoll = Roll(rolls.first.pins + pins);
+        return composeRoll.pins === null;
+    };
+
+    const isFull = function () {
+        return rolls.first.pins !== null && rolls.second.pins !== null;
+    };
+
+    const getScore = function () {
+        return rolls.first.pins + rolls.second.pins;
+    };
+
+    const getScoreFirstRoll = function () {
+        return rolls.first.pins;
+    };
+
+    return {roll, isStrike, isSpare, isFull, getScoreFirstRoll, getScore};
+};
+
+// Component to test
+const Bowling = function () {
+    const MAX_FRAMES = 10;
+    let frames = [Frame()];
+
+    const roll = function (pins) {
+
+        if (frames[frames.length - 1].isFull()) {
+            frames.push(Frame());
+        }
+
+        const currentFrame = frames[frames.length - 1];
+        currentFrame.roll(pins);
+    };
+
+    const getFrameScore = function (indexFrame) {
+        return frames[indexFrame] ? frames[indexFrame].getScore() : 0;
+    };
+
+    const getFrameFirstRollScore = function (indexFrame) {
+        return frames[indexFrame] ? frames[indexFrame].getScoreFirstRoll() : 0;
+    };
+
+    const frameScore = function (indexFrame) {
+        const index = indexFrame > 0 ? indexFrame - 1 : 0;
+        const frame = frames[index];
+
+        let result = getFrameScore(index);
+
+        if (frame && frame.isStrike()) {
+            result += getFrameScore(index + 1);
+        }
+
+        if (frame && frame.isSpare()) {
+            result += getFrameFirstRollScore(index + 1);
         }
 
         return result;
@@ -73,7 +122,6 @@ const Bowling = function () {
     };
 
     const totalScore = function () {
-        const MAX_FRAMES = 10;
         let currentPoints = 0;
         for (let frame = 1; frame <= MAX_FRAMES; frame++) {
             currentPoints += frameScore(frame);
