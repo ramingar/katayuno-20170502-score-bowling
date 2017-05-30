@@ -33,12 +33,17 @@ const Bowling = function () {
 
     const frameScore = function (indexFrame) {
         const index = adjustFrame(indexFrame);
+        const maxIndex = adjustFrame(MAX_FRAMES);
         const frame = frames[index];
 
         let result = getFrameScore(index);
 
-        if (frame && frame.isStrike()) {
+        if (frame && frame.isStrike() && index < maxIndex) {
             result += getFrameScore(index + 1);
+        }
+
+        if (frame && frame.isStrike() && !(index < maxIndex)) {
+            result += getFrameFirstRollScore(index + 1);
         }
 
         if (frame && frame.isSpare()) {
@@ -86,7 +91,7 @@ const Bowling = function () {
             return acc;
         }, []).reverse().slice(0, MAX_FRAMES);
 
-        score.pinsPerRoll = frames.reduce((acc, value) => {
+        const pinsPerRoll = frames.reduce((acc, value) => {
             const firstRoll = value.getScoreFirstRoll();
             acc.push(firstRoll ? firstRoll : 0);
 
@@ -94,7 +99,17 @@ const Bowling = function () {
                 acc.push(value.getScore() - value.getScoreFirstRoll());
             }
             return acc;
-        }, []).slice(0, MAX_FRAMES * 2);
+        }, []);
+
+        if (frames.length > MAX_FRAMES) {
+            if (frames[adjustFrame(MAX_FRAMES)].isSpare() || frames[adjustFrame(MAX_FRAMES)].isStrike()) {
+                score.pinsPerRoll = pinsPerRoll.slice(0, (MAX_FRAMES * 2) + 1)
+            } else {
+                score.pinsPerRoll = pinsPerRoll.slice(0, MAX_FRAMES * 2)
+            }
+        } else {
+            score.pinsPerRoll = pinsPerRoll;
+        }
 
         return null;
     };

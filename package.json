@@ -1,6 +1,6 @@
 {
   "name": "katayuno-20170502-score-bowling",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "main": "web/index.html",
   "description": "Katayuno día 02 de mayo de 2017",
   "scripts": {

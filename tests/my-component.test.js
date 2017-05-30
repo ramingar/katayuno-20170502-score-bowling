@@ -229,3 +229,86 @@ test('-------- Bowling: testing max 10 frames', (assert) => {
 
     assert.end();
 });
+
+test('-------- Bowling: testing max 10 frames (spare in last frame)', (assert) => {
+    const message = 'Total number of rolls must be 21';
+    const expected = Score();
+    expected.totalScore = 92;
+    expected.strikes = [false, true, false, false, false, false, false, false, false, false];
+    expected.spares = [false, false, false, true, true, true, false, false, false, true];
+    expected.accumulatedFrameScore = [5, 18, 21, 31, 50, 62, 66, 70, 79, 92];
+    expected.pinsPerRoll = [2, 3, 10, 0, 2, 1, 1, 9, 0, 10, 9, 1, 2, 2, 2, 2, 9, 0, 7, 3, 3];
+
+    const bowling = Bowling();
+
+    bowling.roll(2);
+    bowling.roll(3);
+    bowling.roll(10);
+    bowling.roll(2);
+    bowling.roll(1);
+    bowling.roll(1);
+    bowling.roll(9);
+    bowling.roll(0);
+    bowling.roll(10);
+    bowling.roll(9);
+    bowling.roll(1);
+    bowling.roll(2);
+    bowling.roll(2);
+    bowling.roll(2);
+    bowling.roll(2);
+    bowling.roll(9);
+    bowling.roll(0);
+    bowling.roll(7);
+    bowling.roll(3);  // 2nd roll of 10th frame
+    bowling.roll(3);
+    bowling.roll(2);
+    bowling.roll(7);
+
+    const actual = Score();
+    bowling.getScore(actual);
+
+    assert.deepEqual(actual, expected, message);
+
+    assert.end();
+});
+
+test('-------- Bowling: testing max 10 frames (strike in last frame)', (assert) => {
+    const message = 'Total number of rolls must be 21';
+    const expected = Score();
+    expected.totalScore = 92;
+    expected.strikes = [false, true, false, false, false, false, false, false, false, true];
+    expected.spares = [false, false, false, true, true, true, false, false, false, false];
+    expected.accumulatedFrameScore = [5, 18, 21, 31, 50, 62, 66, 70, 79, 92];
+    expected.pinsPerRoll = [2, 3, 10, 0, 2, 1, 1, 9, 0, 10, 9, 1, 2, 2, 2, 2, 9, 0, 10, 0, 3];
+
+    const bowling = Bowling();
+
+    bowling.roll(2);
+    bowling.roll(3);
+    bowling.roll(10);
+    bowling.roll(2);
+    bowling.roll(1);
+    bowling.roll(1);
+    bowling.roll(9);
+    bowling.roll(0);
+    bowling.roll(10);
+    bowling.roll(9);
+    bowling.roll(1);
+    bowling.roll(2);
+    bowling.roll(2);
+    bowling.roll(2);
+    bowling.roll(2);
+    bowling.roll(9);
+    bowling.roll(0);
+    bowling.roll(10);  // 1st roll of 10th frame
+    bowling.roll(3);
+    bowling.roll(2);
+    bowling.roll(7);
+
+    const actual = Score();
+    bowling.getScore(actual);
+
+    assert.deepEqual(actual, expected, message);
+
+    assert.end();
+});
