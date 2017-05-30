@@ -189,7 +189,7 @@ test('-------- Bowling: testing total score', (assert) => {
 });
 
 test('-------- Bowling: testing max 10 frames', (assert) => {
-    const message = 'Total score must be 19';
+    const message = 'Total number of frames must be 10';
     const expected = Score();
     expected.totalScore = 88;
     expected.strikes = [false, true, false, false, false, false, false, false, false, false];
