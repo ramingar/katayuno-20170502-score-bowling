@@ -69,12 +69,12 @@ const Bowling = function () {
         score.strikes = frames.reduce((acc, value) => {
             acc.push(value.isStrike());
             return acc;
-        }, []);
+        }, []).slice(0, MAX_FRAMES);
 
         score.spares = frames.reduce((acc, value) => {
             acc.push(value.isSpare());
             return acc;
-        }, []);
+        }, []).slice(0, MAX_FRAMES);
 
         const pinsPerFrame = frames.reduce((acc, value, index) => {
             acc.push(frameScore(index + 1));
@@ -84,7 +84,7 @@ const Bowling = function () {
         score.accumulatedFrameScore = pinsPerFrame.reduce((acc, val, index, array) => {
             acc.push(array.slice(0, array.length - index).reduce((acc, val) => acc + val, 0));
             return acc;
-        }, []).reverse();
+        }, []).reverse().slice(0, MAX_FRAMES);
 
         score.pinsPerRoll = frames.reduce((acc, value) => {
             const firstRoll = value.getScoreFirstRoll();
@@ -94,7 +94,7 @@ const Bowling = function () {
                 acc.push(value.getScore() - value.getScoreFirstRoll());
             }
             return acc;
-        }, []);
+        }, []).slice(0, MAX_FRAMES * 2);
 
         return null;
     };
